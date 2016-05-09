@@ -10,11 +10,20 @@ import (
 const slackUrl = "https://hooks.slack.com/services/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"
 
 type Slack struct {
-	Text string `json:"text"`
+	Text      string `json:"text"`
+	UserName  string `json:"username"`
+	IconEmoji string `json:"icon_emoji"`
 }
 
+var slack Slack
+
 func main() {
-	params, _ := json.Marshal(Slack{Text: "hogehoge"})
+	slack := Slack{
+		Text:      "Hello, this is gopher",
+		IconEmoji: ":gopher:",
+		UserName:  "InstantsBot",
+	}
+	params, _ := json.Marshal(slack)
 	values := url.Values{}
 	values.Add("payload", string(params))
 
