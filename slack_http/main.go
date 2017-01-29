@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"fmt"
 	"net/url"
+
+	"log"
+	"sync"
 )
 
 var PORT = "4390"
@@ -26,5 +29,13 @@ func (h Hoge) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func main() {
 	//http.ListenAndServeTLS()
 	var hoge Hoge
-	http.ListenAndServe(PORT, hoge)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go func () {
+		defer wg.Done()
+		log.Printf("Listening on port: %v\n", PORT)
+		log.Fatal(http.ListenAndServe(":"+PORT, hoge))
+	}()
+	wg.Wait()
 }
