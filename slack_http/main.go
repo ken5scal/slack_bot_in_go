@@ -26,7 +26,6 @@ func main() {
 	}
 
 	//http.ListenAndServeTLS()
-
 	http.HandleFunc("/", rootDir)
 	http.HandleFunc("/oauth", oauth)
 	http.HandleFunc("/command", command)
@@ -57,7 +56,7 @@ func rootDir(res http.ResponseWriter, req *http.Request) {
 func oauth(res http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
-		log.Fatalln("Failed Parsing Form")
+		http.Error(res, "Failed parsing form", http.StatusInternalServerError)
 	}
 
 	code := req.Form.Get("code")
@@ -85,7 +84,7 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 			"client_secret=" + clientSecret
 		oauthResponse, err := http.Get(oauthRequest)
 		if err != nil {
-			fmt.Println(err)
+			http.Error(res, "Failed fetching oauth request", http.StatusInternalServerError)
 		} else {
 			body, _ := ioutil.ReadAll(oauthResponse.Body)
 			defer oauthResponse.Body.Close()
