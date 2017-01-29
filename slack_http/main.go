@@ -7,6 +7,7 @@ import (
 
 	"log"
 	"sync"
+	"os"
 )
 
 var PORT = "4390"
@@ -26,7 +27,19 @@ func (h Hoge) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(w, "Ngrok is working! -  Path Hit: " + data.URL.Host + data.URL.Path)
 }
 
+
+var clientId, clientSecret string
+
+func init() {
+	clientId = os.Getenv("clientId")
+	clientSecret = os.Getenv("clientSecret")
+}
+
 func main() {
+	if len(clientId) == 0 || len(clientSecret) == 0 {
+		log.Fatalln("Either clientId or clientSecret is empty")
+	}
+
 	//http.ListenAndServeTLS()
 	var hoge Hoge
 
