@@ -79,17 +79,16 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 		res.Write(js)
 	} else {
 		// We'll do a GET call to Slack's `oauth.access` endpoint, passing our app's client ID, client secret, and the code we just got as query parameters.
-		url := "https://slack.com/api/oauth.access?" +
-			"code" + code + "&" +
-			"client_id" + clientId + "&" +
-			"client_secret" + clientSecret
-		oauthResponse, err := http.Get(url)
+		oauthRequest := "https://slack.com/api/oauth.access?" +
+			"code=" + code + "&" +
+			"client_id=" + clientId + "&" +
+			"client_secret=" + clientSecret
+		oauthResponse, err := http.Get(oauthRequest)
 		if err != nil {
 			fmt.Println(err)
 		} else {
 			body, _ := ioutil.ReadAll(oauthResponse.Body)
 			defer oauthResponse.Body.Close()
-			fmt.Println(string(body))
 			res.Write(body)
 			command(res, req)
 		}
@@ -98,9 +97,4 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 
 func command(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(res, "Your ngrok tunnel is up and running!")
-}
-
-type Response struct {
-	Message string `json:"message"`
-
 }
