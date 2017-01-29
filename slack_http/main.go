@@ -9,6 +9,7 @@ import (
 	"sync"
 	"os"
 	"encoding/json"
+	"io/ioutil"
 )
 
 var PORT = "4390"
@@ -52,6 +53,7 @@ func rootDir(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(res, "Ngrok is working! -  Path Hit: " + data.URL.Host + data.URL.Path)
 }
 
+// GET /oauth?code=somekindofcode
 func oauth(res http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
@@ -75,6 +77,22 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusInternalServerError)
 		res.Write(js)
+	} else {
+		// We'll do a GET call to Slack's `oauth.access` endpoint, passing our app's client ID, client secret, and the code we just got as query parameters.
+		url := "https://slack.com/api/oauth.access?" +
+			"code" + code + "&" +
+			"client_id" + clientId + "&" +
+			"client_secret" + clientSecret
+		oauthResponse, err := http.Get(url)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			body, _ := ioutil.ReadAll(oauthResponse.Body)
+			defer oauthResponse.Body.Close()
+			fmt.Println(string(body))
+			res.Write(body)
+			command(res, req)
+		}
 	}
 }
 
