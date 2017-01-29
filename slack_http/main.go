@@ -12,10 +12,7 @@ import (
 
 var PORT = "4390"
 
-type Hoge int
-
-
-func (h Hoge) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func hoge(res http.ResponseWriter, req *http.Request) {
 	data := struct {
 		Method string
 		URL *url.URL
@@ -24,7 +21,7 @@ func (h Hoge) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		req.URL,
 	}
 
-	fmt.Fprintln(w, "Ngrok is working! -  Path Hit: " + data.URL.Host + data.URL.Path)
+	fmt.Fprintln(res, "Ngrok is working! -  Path Hit: " + data.URL.Host + data.URL.Path)
 }
 
 
@@ -41,14 +38,14 @@ func main() {
 	}
 
 	//http.ListenAndServeTLS()
-	var hoge Hoge
+	http.HandleFunc("/", hoge)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func () {
 		defer wg.Done()
 		log.Printf("Listening on port: %v\n", PORT)
-		log.Fatal(http.ListenAndServe(":"+PORT, hoge))
+		log.Fatal(http.ListenAndServe(":"+PORT, nil))
 	}()
 	wg.Wait()
 }
