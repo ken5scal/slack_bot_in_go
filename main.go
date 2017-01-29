@@ -7,7 +7,7 @@ import (
 	"net/url"
 )
 
-const slackUrl = "https://hooks.slack.com/services/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"
+const slackUrl = "https://hooks.slack.com/services/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"
 
 type Slack struct {
 	Text      string `json:"text"`
@@ -19,7 +19,7 @@ var slack Slack
 
 func main() {
 	slack := Slack{
-		Text:      "Hello, this is gopher",
+		Text:      "*Hello*,\n _this is gopher_\n`radioactive` is `true`.",
 		IconEmoji: ":gopher:",
 		UserName:  "InstantsBot",
 	}
@@ -34,4 +34,6 @@ func main() {
 	defer resp.Body.Close()
 
 	println(string(body))
+
+
 }
