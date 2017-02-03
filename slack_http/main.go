@@ -13,15 +13,16 @@ import (
 )
 
 var PORT = "4390"
-var clientId, clientSecret string
+var clientId, clientSecret, token string
 
 func init() {
 	clientId = os.Getenv("clientId")
 	clientSecret = os.Getenv("clientSecret")
+	token = os.Getenv("token")
 }
 
 func main() {
-	if len(clientId) == 0 || len(clientSecret) == 0 {
+	if len(clientId) == 0 || len(clientSecret) == 0  {
 		log.Fatalln("Either clientId or clientSecret is empty")
 	}
 
@@ -110,20 +111,30 @@ func listening(res http.ResponseWriter, req *http.Request) {
 		log.Fatalln("error unmarshalling", err)
 	}
 
-	fmt.Println(ch.Type)
+	fmt.Println(ch)
 
-	b, err := json.Marshal(ChallengeResponse{ch.Challenge})
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+	if ch.Challenge != "" {
+		b, err := json.Marshal(ChallengeResponse{ch.Challenge})
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+		res.Write(b)
 		return
 	}
-
-	res.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-	res.Write(b)
 
 	// ============ Slack Token Verification ===========
 	// We can verify the request is coming from Slack by checking that the
 	// verification token in the request matches our app's settings
+	if token != ch.Token {
+		res.Header().Set("X-Slack-No-Retry", "1")
+		res.WriteHeader(http.StatusForbidden)
+	}
+
+	// ====== Process Incoming Events from Slack =======
+	// If the incoming request is an Event we've subcribed to
 }
 
 type ChallengeResponse struct {
@@ -132,6 +143,23 @@ type ChallengeResponse struct {
 
 type ChallengeBody struct {
 	Token string
+	Team_id string
+	Api_app_id string
 	Challenge string
 	Type string
+	Event_ts string
+	Event Event
+}
+
+type Event struct {
+	Type string
+	Event_ts string
+	User string
+	Reaction string
+	Item_user string
+	Item struct{
+		Type string
+		Channel string
+		Ts string
+	}
 }
