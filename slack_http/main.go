@@ -110,6 +110,8 @@ func listening(res http.ResponseWriter, req *http.Request) {
 		log.Fatalln("error unmarshalling", err)
 	}
 
+	fmt.Println(ch.Type)
+
 	b, err := json.Marshal(ChallengeResponse{ch.Challenge})
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
@@ -118,6 +120,10 @@ func listening(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Set("Content-Type", "application/x-www-form-urlencoded")
 	res.Write(b)
+
+	// ============ Slack Token Verification ===========
+	// We can verify the request is coming from Slack by checking that the
+	// verification token in the request matches our app's settings
 }
 
 type ChallengeResponse struct {
