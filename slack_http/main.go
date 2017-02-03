@@ -100,15 +100,17 @@ func command(res http.ResponseWriter, req *http.Request) {
 }
 
 func listening(res http.ResponseWriter, req *http.Request) {
-	var ch body
-
+	// ============= Slack URL Verification ============
+	// In order to verify the url of our endpoint, Slack will send a challenge
+	// token in a request and check for this token in the response our endpoint sends back.
+	// For more info: https://api.slack.com/events/url_verification
+	var ch ChallengeBody
 	err := json.NewDecoder(req.Body).Decode(&ch)
 	if err != nil {
 		log.Fatalln("error unmarshalling", err)
 	}
 
-	hoge := R{ch.Challenge}
-	b, err := json.Marshal(hoge)
+	b, err := json.Marshal(ChallengeResponse{ch.Challenge})
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
@@ -118,11 +120,11 @@ func listening(res http.ResponseWriter, req *http.Request) {
 	res.Write(b)
 }
 
-type R struct {
+type ChallengeResponse struct {
 	Challenge string
 }
 
-type body struct {
+type ChallengeBody struct {
 	Token string
 	Challenge string
 	Type string
