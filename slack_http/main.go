@@ -29,6 +29,7 @@ func main() {
 	http.HandleFunc("/", rootDir)
 	http.HandleFunc("/oauth", oauth)
 	http.HandleFunc("/command", command)
+	http.HandleFunc("/listening", listening)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -96,4 +97,33 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 
 func command(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(res, "Your ngrok tunnel is up and running!")
+}
+
+func listening(res http.ResponseWriter, req *http.Request) {
+	var ch body
+
+	err := json.NewDecoder(req.Body).Decode(&ch)
+	if err != nil {
+		log.Fatalln("error unmarshalling", err)
+	}
+
+	hoge := R{ch.Challenge}
+	b, err := json.Marshal(hoge)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	res.Write(b)
+}
+
+type R struct {
+	Challenge string
+}
+
+type body struct {
+	Token string
+	Challenge string
+	Type string
 }
