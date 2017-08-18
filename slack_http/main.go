@@ -10,6 +10,7 @@ import (
 	"os"
 	"encoding/json"
 	"io/ioutil"
+
 )
 
 var PORT = "4390"
@@ -97,7 +98,15 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 }
 
 func command(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(res, "Your ngrok tunnel is up and running!")
+	res.Header().Set("Content-Type", "application/json")
+	fmt.Fprintln(res, `{"response_type": "in_channel","text": "It's 80 degrees right now.","attachments": [{"text":"Partly cloudy today and tomorrow"}]}`)
+
+	//out, err := exec.Command("/Users/suzuki/workspace/go/bin/lastpass_provisioning", "dashboard").Output()
+	//if err != nil {
+	//	fmt.Println(err)
+	//	os.Exit(1)
+	//}
+	//fmt.Println(string(out))
 }
 
 func listening(res http.ResponseWriter, req *http.Request) {
