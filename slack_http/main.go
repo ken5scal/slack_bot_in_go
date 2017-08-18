@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"bytes"
+	"os/exec"
 )
 
 var PORT = "4390"
@@ -99,14 +101,55 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 
 func command(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
-	fmt.Fprintln(res, `{"response_type": "in_channel","text": "It's 80 degrees right now.","attachments": [{"text":"Partly cloudy today and tomorrow"}]}`)
+	fmt.Fprintln(res, `{"response_type": "in_channel","text": "Lastpass Audit","attachments": []}`)
 
-	//out, err := exec.Command("/Users/suzuki/workspace/go/bin/lastpass_provisioning", "dashboard").Output()
-	//if err != nil {
-	//	fmt.Println(err)
-	//	os.Exit(1)
-	//}
-	//fmt.Println(string(out))
+	bug := new(bytes.Buffer)
+	defer req.Body.Close()
+
+	bug.ReadFrom(req.Body)
+	fmt.Println(bug.String())
+	vs, err := url.ParseQuery(bug.String())
+	if err != nil {
+		os.Exit(1)
+	}
+
+	out, err := exec.Command("/Users/suzuki/workspace/go/bin/lastpass_provisioning", "dashboard").Output()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	for key, value := range vs {
+		if key == "response_url" {
+			type Text struct {
+				Text         string `json:"text"`
+			}
+
+			type SlackJson struct {
+				ResponseType string `json:"response_type"`
+				Text         string `json:"text"`
+				Attachments  []Text `json:"attachments"`
+			}
+
+			payload := &SlackJson{
+				ResponseType: "in_channel",
+				Text: "Lastpass Audit",
+				Attachments:[]Text{{string(out)}},
+			}
+
+			body := new(bytes.Buffer)
+			err := json.NewEncoder(body).Encode(payload)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			_, err = http.Post(value[0], "application/json", body)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+	}
 }
 
 func listening(res http.ResponseWriter, req *http.Request) {
