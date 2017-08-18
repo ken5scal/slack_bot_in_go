@@ -101,7 +101,7 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 
 func command(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
-	fmt.Fprintln(res, `{"response_type": "ephemeral","text": "Lastpass Audit","attachments": []}`)
+	fmt.Fprintln(res, `{"response_type": "ephemeral","text": "","attachments": []}`)
 
 	bug := new(bytes.Buffer)
 	defer req.Body.Close()
