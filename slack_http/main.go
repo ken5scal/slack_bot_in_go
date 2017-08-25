@@ -103,12 +103,12 @@ func command(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	fmt.Fprintln(res, `{"response_type": "ephemeral","text": "","attachments": []}`)
 
-	bug := new(bytes.Buffer)
+	buf := new(bytes.Buffer)
 	defer req.Body.Close()
 
-	bug.ReadFrom(req.Body)
-	fmt.Println(bug.String())
-	vs, err := url.ParseQuery(bug.String())
+	buf.ReadFrom(req.Body)
+	fmt.Println(buf.String())
+	vs, err := url.ParseQuery(buf.String())
 	if err != nil {
 		os.Exit(1)
 	}
@@ -214,4 +214,63 @@ type Event struct {
 		Channel string
 		Ts string
 	}
+}
+
+type SlackSimpleMessage struct {
+	Text string `json:"text"`
+}
+
+// SlackMessageWithAttachments is a format for Slack message.
+// https://api.slack.com/docs/messages/builder?msg=%7B%22attachments%22%3A%5B%7B%22fallback%22%3A%22Required%20plain-text%20summary%20of%20the%20attachment.%22%2C%22color%22%3A%22%2336a64f%22%2C%22pretext%22%3A%22Optional%20text%20that%20appears%20above%20the%20attachment%20block%22%2C%22author_name%22%3A%22Bobby%20Tables%22%2C%22author_link%22%3A%22http%3A%2F%2Fflickr.com%2Fbobby%2F%22%2C%22author_icon%22%3A%22http%3A%2F%2Fflickr.com%2Ficons%2Fbobby.jpg%22%2C%22title%22%3A%22Slack%20API%20Documentation%22%2C%22title_link%22%3A%22https%3A%2F%2Fapi.slack.com%2F%22%2C%22text%22%3A%22Optional%20text%20that%20appears%20within%20the%20attachment%22%2C%22fields%22%3A%5B%7B%22title%22%3A%22Priority%22%2C%22value%22%3A%22High%22%2C%22short%22%3Afalse%7D%5D%2C%22image_url%22%3A%22http%3A%2F%2Fmy-website.com%2Fpath%2Fto%2Fimage.jpg%22%2C%22thumb_url%22%3A%22http%3A%2F%2Fexample.com%2Fpath%2Fto%2Fthumb.png%22%2C%22footer%22%3A%22Slack%20API%22%2C%22footer_icon%22%3A%22https%3A%2F%2Fplatform.slack-edge.com%2Fimg%2Fdefault_application_icon.png%22%2C%22ts%22%3A123456789%7D%5D%7D
+/*
+{
+    "attachments": [
+        {
+            "fallback": "Required plain-text summary of the attachment.",
+            "color": "#36a64f",
+            "pretext": "Optional text that appears above the attachment block",
+            "author_name": "Bobby Tables",
+            "author_link": "http://flickr.com/bobby/",
+            "author_icon": "http://flickr.com/icons/bobby.jpg",
+            "title": "Slack API Documentation",
+            "title_link": "https://api.slack.com/",
+            "text": "Optional text that appears within the attachment",
+            "fields": [
+                {
+                    "title": "Priority",
+                    "value": "Low",
+                    "short": false
+                }
+            ],
+            "image_url": "https://platform.slack-edge.com/img/default_application_icon.png",
+            "thumb_url": "https://platform.slack-edge.com/img/default_application_icon.png",
+            "footer": "Slack API",
+            "footer_icon": "https://platform.slack-edge.com/img/default_application_icon.png",
+            "ts": 123456789
+        }
+    ]
+}
+ */
+type SlackMessageWithAttachments struct {
+	Attachments []struct {
+		Fallback   string `json:"fallback"`
+		Color      string `json:"color"`	//ex. "#36a64f" (green)
+		Pretext    string `json:"pretext"`
+		AuthorName string `json:"author_name"`
+		AuthorLink string `json:"author_link"`	// "http://flickr.com/bobby/"
+		AuthorIcon string `json:"author_icon"`	// "http://flickr.com/icons/bobby.jpg"
+		Title      string `json:"title"`
+		TitleLink  string `json:"title_link"`
+		Text       string `json:"text"`
+		Fields     []struct {
+			Title string `json:"title"`
+			Value string `json:"value"`
+			Short bool   `json:"short"`
+		} `json:"fields"`
+		ImageURL   string `json:"image_url"`
+		ThumbURL   string `json:"thumb_url"`
+		Footer     string `json:"footer"`
+		FooterIcon string `json:"footer_icon"`
+		Ts         int    `json:"ts"`
+	} `json:"attachments"`
 }
