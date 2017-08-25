@@ -13,11 +13,11 @@ import (
 
 	"bytes"
 	"os/exec"
-	"net/http/httputil"
 )
 
 var PORT = "4390"
 var clientId, clientSecret, token string
+var WebHookURL = "https://hooks.slack.com/services/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"
 
 func init() {
 	clientId = os.Getenv("clientId")
@@ -109,14 +109,12 @@ func command(res http.ResponseWriter, req *http.Request) {
 
 	buf.ReadFrom(req.Body)
 	fmt.Println(buf.String())
-	//vs, err := url.ParseQuery(buf.String())
-	//if err != nil {
-	//	os.Exit(1)
-	//}
+	vs, err := url.ParseQuery(buf.String())
+	if err != nil {
+		os.Exit(1)
+	}
 
-	//out, err := exec.Command("/Users/suzuki/workspace/go/bin/lastpass_provisioning", "dashboard").Output()
 	cmd := "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
-	//arg := "get users -f admin"
 	out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
 	if err != nil {
 		fmt.Println("failed command")
@@ -125,65 +123,74 @@ func command(res http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println(string(out))
 
-	payload := &SlackSimpleMessage{Text:string(out)}
-	body := new(bytes.Buffer)
-	err = json.NewEncoder(body).Encode(payload)
-	if err != nil {
-		fmt.Println("failed encoding")
-		os.Exit(1)
-	}
-
-	url := "https://hooks.slack.com/services/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"
-	req, err = http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		fmt.Println("failed making request")
-		os.Exit(1)
-	}
-	req.Header.Add("Content-Type", "application/json")
-	dump, _ := httputil.DumpRequest(req, true)
-	log.Println(dump)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Println("failed requsting")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	dump, _ = httputil.DumpResponse(resp, true)
-	fmt.Println(dump)
-
-	//url := vs["response_url"]
-	//for key, value := range vs {
-	//	if key == "response_url" {
-	//		type Text struct {
-	//			Text         string `json:"text"`
-	//		}
-	//
-	//		type SlackJson struct {
-	//			ResponseType string `json:"response_type"`
-	//			Text         string `json:"text"`
-	//			Attachments  []Text `json:"attachments"`
-	//		}
-	//
-	//		payload := &SlackJson{
-	//			ResponseType: "in_channel",
-	//			Text: "Lastpass Audit",
-	//			Attachments:[]Text{{string(out)}},
-	//		}
-	//
-	//		body := new(bytes.Buffer)
-	//		err := json.NewEncoder(body).Encode(payload)
-	//		if err != nil {
-	//			fmt.Println(err)
-	//			os.Exit(1)
-	//		}
-	//		_, err = http.Post(value[0], "application/json", body)
-	//		if err != nil {
-	//			fmt.Println(err)
-	//			os.Exit(1)
-	//		}
-	//	}
+	/*
+	Incoming Web Hook
+	 */
+	//payload := &SlackMessage{Text:string(out)}
+	//body := new(bytes.Buffer)
+	//err = json.NewEncoder(body).Encode(payload)
+	//if err != nil {
+	//	fmt.Println("failed encoding")
+	//	os.Exit(1)
 	//}
+	//url := "https://hooks.slack.com/services/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"
+	//req, err = http.NewRequest(http.MethodPost, url, body)
+	//if err != nil {
+	//	fmt.Println("failed making request")
+	//	os.Exit(1)
+	//}
+	//req.Header.Add("Content-Type", "application/json")
+	//dump, _ := httputil.DumpRequest(req, true)
+	//log.Println(dump)
+	//
+	//resp, err := http.DefaultClient.Do(req)
+	//if err != nil {
+	//	fmt.Println("failed requsting")
+	//	fmt.Println(err)
+	//	os.Exit(1)
+	//}
+	//dump, _ = httputil.DumpResponse(resp, true)
+	//fmt.Println(dump)
+
+			type SlackJson struct {
+				ResponseType string `json:"response_type"`
+				Text         string `json:"text"`
+				Attachments  []SlackAttachment `json:"attachments"`
+			}
+	//
+			payload := &SlackJson{
+				ResponseType: "in_channel",
+				Text: "Lastpass Audit",
+			}
+	//
+			attachment := SlackAttachment{
+				Color: "#36a64f",
+				Pretext:"Admin users in LastPass",
+				AuthorName:"LastPass Provisioning API",
+				AuthorLink:"https://enterprise.lastpass.com/users/set-up-create-new-user-2/lastpass-provisioning-api/",
+				AuthorIcon:"https://images-na.ssl-images-amazon.com/images/I/312B68fn10L.png",
+				Title:"kengo-admin@moneyforward.co.jp",
+				Text:"Activities",
+				Fields:[]SlackField{
+					{
+						Title:"2017-08-25",
+						Value:"従業員のアカウントを作成しました",
+						Short:false,
+					},
+				},
+			}
+	payload.Attachments = []SlackAttachment{attachment}
+			body := new(bytes.Buffer)
+			err = json.NewEncoder(body).Encode(payload)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			_, err = http.Post(vs["response_url"][0], "application/json", body)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 }
 
 func listening(res http.ResponseWriter, req *http.Request) {
@@ -253,7 +260,7 @@ type Event struct {
 // Try Here: https://api.slack.com/docs/messages/builder
 
 // SlackSimpleMessage is a simplest format of Slack message.
-type SlackSimpleMessage struct {
+type SlackMessage struct {
 	Text string `json:"text,omitempty"`
 	Attachments []SlackAttachment `json:"attachments,omitempty"`
 	// _text_ for italy
