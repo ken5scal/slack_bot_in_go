@@ -121,7 +121,6 @@ func command(res http.ResponseWriter, req *http.Request) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(string(out))
 
 	/*
 	Incoming Web Hook
