@@ -151,46 +151,41 @@ func command(res http.ResponseWriter, req *http.Request) {
 	//}
 	//dump, _ = httputil.DumpResponse(resp, true)
 	//fmt.Println(dump)
+	//
+	payload := &SlackSlashCommandResponse{
+		ResponseType: "in_channel",
+		Text: "Lastpass Audit",
+		Attachments: make([]SlackAttachment, 0),
+	}
 
-			type SlackJson struct {
-				ResponseType string `json:"response_type"`
-				Text         string `json:"text"`
-				Attachments  []SlackAttachment `json:"attachments"`
-			}
-	//
-			payload := &SlackJson{
-				ResponseType: "in_channel",
-				Text: "Lastpass Audit",
-			}
-	//
-			attachment := SlackAttachment{
-				Color: "#36a64f",
-				Pretext:"Admin users in LastPass",
-				AuthorName:"LastPass Provisioning API",
-				AuthorLink:"https://enterprise.lastpass.com/users/set-up-create-new-user-2/lastpass-provisioning-api/",
-				AuthorIcon:"https://images-na.ssl-images-amazon.com/images/I/312B68fn10L.png",
-				Title:"kengo-admin@moneyforward.co.jp",
-				Text:"Activities",
-				Fields:[]SlackField{
-					{
-						Title:"2017-08-25",
-						Value:"従業員のアカウントを作成しました",
-						Short:false,
-					},
-				},
-			}
+	attachment := SlackAttachment{
+		Color: "#36a64f",
+		Pretext:"Admin users in LastPass",
+		AuthorName:"LastPass Provisioning API",
+		AuthorLink:"https://enterprise.lastpass.com/users/set-up-create-new-user-2/lastpass-provisioning-api/",
+		AuthorIcon:"https://images-na.ssl-images-amazon.com/images/I/312B68fn10L.png",
+		Title:"kengo-admin@moneyforward.co.jp",
+		Text:"Activities",
+		Fields:[]SlackField{
+			{
+				Title:"2017-08-25",
+				Value:"従業員のアカウントを作成しました",
+				Short:false,
+			},
+		},
+	}
 	payload.Attachments = []SlackAttachment{attachment}
-			body := new(bytes.Buffer)
-			err = json.NewEncoder(body).Encode(payload)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			_, err = http.Post(vs["response_url"][0], "application/json", body)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
+	body := new(bytes.Buffer)
+	err = json.NewEncoder(body).Encode(payload)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	_, err = http.Post(vs["response_url"][0], "application/json", body)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func listening(res http.ResponseWriter, req *http.Request) {
@@ -307,4 +302,11 @@ type SlackAction struct{
 		OkText      string `json:"ok_text"`
 		DismissText string `json:"dismiss_text"`
 	} `json:"confirm,omitempty"`
+}
+
+
+type SlackSlashCommandResponse struct {
+	ResponseType string `json:"response_type"`
+	Text         string `json:"text"`
+	Attachments  []SlackAttachment `json:"attachments"`
 }
