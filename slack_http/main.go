@@ -47,15 +47,7 @@ func main() {
 }
 
 func rootDir(res http.ResponseWriter, req *http.Request) {
-	data := struct {
-		Method string
-		URL *url.URL
-	}{
-		req.Method,
-		req.URL,
-	}
-
-	fmt.Fprintln(res, "Ngrok is working! -  Path Hit: " + data.URL.Host + data.URL.Path)
+	fmt.Fprintln(res, "Ngrok is working! -  Path Hit: " + req.URL.Host + req.URL.Path)
 }
 
 // GET /oauth?code=somekindofcode
@@ -114,7 +106,32 @@ func command(res http.ResponseWriter, req *http.Request) {
 		os.Exit(1)
 	}
 
-	cmd := "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
+	/*
+	token=gIkuvaNzQIHg97ATvDxqgjtO
+	team_id=T0001
+	team_domain=example
+	enterprise_id=E0001
+	enterprise_name=Globular%20Construct%20Inc
+	channel_id=C2147483705
+	channel_name=test
+	user_id=U2147483697
+	user_name=Steve
+	command=/weather
+	text=94070
+	response_url=https://hooks.slack.com/commands/1234/5678
+	 */
+	command := vs.Get("command")
+	text 	:= vs.Get("text")
+
+	if command != "audit"{
+		return
+	}
+	cmd := ""
+	switch text {
+	case "lastpass":
+		cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
+	}
+
 	//out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
 	out, err := exec.Command(cmd, "dashboard").Output()
 	if err != nil {
