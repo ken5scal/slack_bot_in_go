@@ -115,7 +115,8 @@ func command(res http.ResponseWriter, req *http.Request) {
 	}
 
 	cmd := "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
-	out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
+	//out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
+	out, err := exec.Command(cmd, "dashboard").Output()
 	if err != nil {
 		fmt.Println("failed command")
 		fmt.Println(err)
@@ -153,27 +154,28 @@ func command(res http.ResponseWriter, req *http.Request) {
 	//
 	payload := &SlackSlashCommandResponse{
 		ResponseType: "in_channel",
-		Text: "Lastpass Audit",
+		//Text: "Lastpass Audit",
+		Text: string(out),
 		Attachments: make([]SlackAttachment, 0),
 	}
 
-	attachment := SlackAttachment{
-		Color: "#36a64f",
-		Pretext:"Admin users in LastPass",
-		AuthorName:"LastPass Provisioning API",
-		AuthorLink:"https://enterprise.lastpass.com/users/set-up-create-new-user-2/lastpass-provisioning-api/",
-		AuthorIcon:"https://images-na.ssl-images-amazon.com/images/I/312B68fn10L.png",
-		Title:"kengo-admin@moneyforward.co.jp",
-		Text:"Activities",
-		Fields:[]SlackField{
-			{
-				Title:"2017-08-25",
-				Value:"従業員のアカウントを作成しました",
-				Short:false,
-			},
-		},
-	}
-	payload.Attachments = []SlackAttachment{attachment}
+	//attachment := SlackAttachment{
+	//	Color: "#36a64f",
+	//	Pretext:"Admin users in LastPass",
+	//	AuthorName:"LastPass Provisioning API",
+	//	AuthorLink:"https://enterprise.lastpass.com/users/set-up-create-new-user-2/lastpass-provisioning-api/",
+	//	AuthorIcon:"https://images-na.ssl-images-amazon.com/images/I/312B68fn10L.png",
+	//	Title:"kengo-admin@moneyforward.co.jp",
+	//	Text:"Activities",
+	//	Fields:[]SlackField{
+	//		{
+	//			Title:"2017-08-25",
+	//			Value:"従業員のアカウントを作成しました",
+	//			Short:false,
+	//		},
+	//	},
+	//}
+	//payload.Attachments = []SlackAttachment{attachment}
 	body := new(bytes.Buffer)
 	err = json.NewEncoder(body).Encode(payload)
 	if err != nil {
