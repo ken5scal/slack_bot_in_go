@@ -12,8 +12,8 @@ import (
 	"io/ioutil"
 
 	"bytes"
-	"os/exec"
-	"lastpass_provisioning/lastpass_config"
+	//"os/exec"
+	//"lastpass_provisioning/lastpass_config"
 	"lastpass_provisioning/lastpassclient"
 	"lastpass_provisioning/service"
 )
@@ -129,13 +129,13 @@ func command(res http.ResponseWriter, req *http.Request) {
 	if command != "audit"{
 		return
 	}
-	cmd := ""
+	//cmd := ""
 	switch text {
 	case "lastpass":
-		cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
+	//	cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
 	}
 
-	out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
+	//out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
 	//out, err := exec.Command(cmd, "dashboard").Output()
 	if err != nil {
 		fmt.Println("failed command")
@@ -143,7 +143,7 @@ func command(res http.ResponseWriter, req *http.Request) {
 		os.Exit(1)
 	}
 	c := lastpassclient.NewLastPassClientFromContext(nil)
-	users, err := service.NewService(c).GetAdminUserData()
+	_, err = service.NewService(c).GetAdminUserData()
 
 
 	/*
