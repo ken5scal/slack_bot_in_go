@@ -13,9 +13,10 @@ import (
 
 	"bytes"
 	//"os/exec"
-	//"lastpass_provisioning/lastpass_config"
-	"lastpass_provisioning/lastpassclient"
-	"lastpass_provisioning/service"
+	////"lastpass_provisioning/lastpass_config"
+	//"lastpass_provisioning/service"
+	//"lastpass_provisioning/lastpass_client"
+	"os/exec"
 )
 
 var PORT = "4390"
@@ -123,28 +124,28 @@ func command(res http.ResponseWriter, req *http.Request) {
 	text=94070
 	response_url=https://hooks.slack.com/commands/1234/5678
 	 */
-	command := vs.Get("command")
+
+	//command := vs.Get("command")
 	text 	:= vs.Get("text")
 
-	if command != "audit"{
-		return
-	}
-	//cmd := ""
+	cmd := ""
 	switch text {
 	case "lastpass":
-	//	cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
+		cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
 	}
 
 	//out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
-	//out, err := exec.Command(cmd, "dashboard").Output()
+	fmt.Println(cmd)
+	out, err := exec.Command(cmd, "dashboard").Output()
 	if err != nil {
 		fmt.Println("failed command")
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	c := lastpassclient.NewLastPassClientFromContext(nil)
-	_, err = service.NewService(c).GetAdminUserData()
+	//c := lastpass_client.NewLastPassClient("")
+	//_, err = service.NewUserService(c).GetAdminUserData()
 
+	fmt.Println(string(out))
 
 	/*
 	Incoming Web Hook
