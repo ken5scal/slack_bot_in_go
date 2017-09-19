@@ -37,7 +37,8 @@ func main() {
 	//http.ListenAndServeTLS()
 	http.HandleFunc("/", rootDir)
 	http.HandleFunc("/oauth", oauth)
-	http.HandleFunc("/command", command)
+	http.HandleFunc("/audit", command)
+	http.HandleFunc("/lastpass", doLastPass)
 	http.HandleFunc("/listening", listening)
 
 	wg := &sync.WaitGroup{}
@@ -96,6 +97,18 @@ func oauth(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func doLastPass(res http.ResponseWriter, req *http.Request) {
+	buf := new(bytes.Buffer)
+	defer req.Body.Close()
+
+	buf.ReadFrom(req.Body)
+
+	//vs, err := url.ParseQuery(buf.String())
+	//if err != nil {
+	//	os.Exit(1)
+	//}
+}
+
 func command(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	fmt.Fprintln(res, `{"response_type": "ephemeral","text": "","attachments": []}`)
@@ -110,33 +123,18 @@ func command(res http.ResponseWriter, req *http.Request) {
 		os.Exit(1)
 	}
 
-	/*
-	token=gIkuvaNzQIHg97ATvDxqgjtO
-	team_id=T0001
-	team_domain=example
-	enterprise_id=E0001
-	enterprise_name=Globular%20Construct%20Inc
-	channel_id=C2147483705
-	channel_name=test
-	user_id=U2147483697
-	user_name=Steve
-	command=/weather
-	text=94070
-	response_url=https://hooks.slack.com/commands/1234/5678
-	 */
-
-	//command := vs.Get("command")
 	text 	:= vs.Get("text")
 
 	cmd := ""
 	switch text {
 	case "lastpass":
-		cmd = "/Users/suzuki/workspace/go/bin/lastpass_provisioning"
+		cmd = "/Users/suzuki/workspace/go/bin/lpmgt"
 	}
 
 	//out, err := exec.Command(cmd, "get", "users", "-f", "admin").Output()
+	out, err := exec.Command(cmd, "get", "dashboard").Output()
 	fmt.Println(cmd)
-	out, err := exec.Command(cmd, "dashboard").Output()
+	//out, err := exec.Command("/Users/suzuki/workspace/go/bin/lpmgt", "get dashboard").Output()
 	if err != nil {
 		fmt.Println("failed command")
 		fmt.Println(err)
