@@ -1,0 +1,41 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "3Kx93/EGgHryn92eavMOyby6Voc=",
+			"path": "github.com/daviddengcn/go-colortext",
+			"revision": "17e75f6184bc9e727756cd0d82e0af58b1fc7191",
+			"revisionTime": "2017-11-26T03:42:57Z"
+		},
+		{
+			"path": "github.com/ken5scal/lpmgt",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "XlDPtGKOz9esu8hDTTNmvnbtIUY=",
+			"path": "github.com/moneyforward/lpmgt",
+			"revision": "66bcd6a009f7742bf24cbdce4de8af5cdd4eca4c",
+			"revisionTime": "2017-10-24T06:10:42Z"
+		},
+		{
+			"checksumSHA1": "GZMHA/b2Odw1K/2/bnct25XOUj4=",
+			"path": "github.com/motemen/go-colorine",
+			"revision": "49ff36b8fa42db28092361cd20dcefd0b03b1472",
+			"revisionTime": "2014-05-31T08:41:16Z"
+		},
+		{
+			"checksumSHA1": "rJab1YdNhQooDiBWNnt7TLWPyBU=",
+			"path": "github.com/pkg/errors",
+			"revision": "f15c970de5b76fac0b59abb32d62c17cc7bed265",
+			"revisionTime": "2017-10-18T19:55:50Z"
+		},
+		{
+			"checksumSHA1": "fRgp9UZPllOlkPssv7frzQx4z9A=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "287cf08546ab5e7e37d55a84f7ed3fd1db036de5",
+			"revisionTime": "2017-11-16T09:02:43Z"
+		}
+	],
+	"rootPath": "github.com/ken5scal/lp_admin_slack_app"
+}
