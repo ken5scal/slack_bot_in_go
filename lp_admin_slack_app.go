@@ -8,13 +8,15 @@ import (
 	"os"
 
 	"bytes"
+	"github.com/jasonlvhit/gocron"
+	"github.com/ken5scal/lp_admin_slack_app/slack"
 	lp "github.com/moneyforward/lpmgt"
 	"github.com/pkg/errors"
 	"sync"
 	"time"
 )
 
-var port, apiKey, endpointURL, companyID, slackVerificationToken string
+var port, apiKey, endpointURL, companyID, slackVerificationToken, slackAccessToken, slackChannel string
 var durationToAuditInDay = 1
 var location = time.UTC
 
@@ -25,6 +27,8 @@ func init() {
 	companyID = os.Getenv("COMPANY_ID")
 	loc := os.Getenv("LOCATION")
 	slackVerificationToken = os.Getenv("SLACK_VERIFICATION_TOKEN")
+	slackAccessToken = os.Getenv("SLACK_ACCESS_TOKEN")
+	slackChannel = os.Getenv("SLACK_CHANNEL")
 
 	if port == "" {
 		log.Fatal("$PORT must be set")
@@ -36,6 +40,10 @@ func init() {
 		log.Fatal("$COMPANY_ID must be set")
 	} else if slackVerificationToken == "" {
 		log.Fatal("$SLACK_VERIFICATION_TOKEN must be set")
+	} else if slackAccessToken == "" {
+		log.Fatal("$SLACK_ACCESS_TOKEN must be set")
+	} else if slackChannel == "" {
+		slackChannel = "security_audits"
 	}
 
 	if loc == "" {
@@ -46,14 +54,20 @@ func init() {
 }
 
 func main() {
-	client, err := lp.NewClient(apiKey, endpointURL, companyID, os.Getenv("DEBUG") != "")
-
+	// Slack Client
+	slackClient, err := slack.NewClient(slackAccessToken, os.Getenv("DEBUG") != "")
 	if err != nil {
-		log.Fatal("failed client setup")
+		log.Fatal("[ERROR] failed slack client setup: ", err)
 	}
 
+	// Schedule and Start Job
+	gocron.Every(1).Minutes().Do(auditJob, slackClient)
+	_, nextRun := gocron.NextRun()
+	fmt.Println(nextRun)
+	gocron.Start()
+
 	http.HandleFunc("/", ping)
-	http.HandleFunc("/audit", audit(client))
+	http.HandleFunc("/audit", auditHandler)
 	http.ListenAndServe(":"+port, nil)
 }
 
@@ -61,39 +75,51 @@ func ping(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprintln(res, "pong")
 }
 
-func audit(c *lp.LastPassClient) func(res http.ResponseWriter, req *http.Request) {
-	return func(res http.ResponseWriter, req *http.Request) {
-		defer req.Body.Close()
+func auditJob(client *slack.Client) {
+	lpClient, err := lp.NewClient(apiKey, endpointURL, companyID, os.Getenv("DEBUG") != "")
+	if err != nil {
+		log.Printf("[ERROR] Failed lastpass client setup")
+	}
 
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(req.Body)
-
-		// Parse Slash Command Query: https://api.slack.com/slash-commands
-		slashCommand, err := BuildSlashCommandRequestFromQuery(buf.String())
-		if err != nil {
-			log.Printf("[ERROR] Failed to Parse Query from slack: %s", err)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		// Validate the command by comparing a token issued by Slack
-		if slashCommand.Token != slackVerificationToken {
-			log.Printf("[ERROR] Token within slash command %s is not valid", slashCommand.Token)
-			res.WriteHeader(http.StatusForbidden)
-			return
-		}
-
-		// Temporarily returning response.
-		res.WriteHeader(http.StatusOK)
-		fmt.Fprintln(res, "Got it start Auditing")
-
-		if err := slashCommand.sendResponse(getLastPassAudit(c)); err != nil {
-			log.Printf("[ERROR] Failed to send a audit result: %s", err)
-		}
+	if _, err := client.ChatPostMessage(auditLastPass(lpClient), slackChannel); err != nil {
+		log.Printf("[ERROR] Failed post a Message: %s", err)
 	}
 }
 
-func getLastPassAudit(c *lp.LastPassClient) string {
+func auditHandler(res http.ResponseWriter, req *http.Request) {
+	client, err := lp.NewClient(apiKey, endpointURL, companyID, os.Getenv("DEBUG") != "")
+	if err != nil {
+		log.Fatal("failed client setup")
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(req.Body)
+
+	// Parse Slash Command Query: https://api.slack.com/slash-commands
+	slashCommand, err := slack.BuildSlashCommandRequestFromQuery(buf.String())
+	if err != nil {
+		log.Printf("[ERROR] Failed to Parse Query from slack: %s", err)
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Validate the command by comparing a token issued by Slack
+	if slashCommand.Token != slackVerificationToken {
+		log.Printf("[ERROR] Token within slash command %s is not valid", slashCommand.Token)
+		res.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// Temporarily returning response.
+	res.WriteHeader(http.StatusOK)
+	fmt.Fprintln(res, "Got it start Auditing")
+
+	if err := slashCommand.SendResponse(auditLastPass(client)); err != nil {
+		log.Printf("[ERROR] Failed to send a audit result: %s", err)
+	}
+}
+
+func auditLastPass(c *lp.LastPassClient) string {
 	folders := make([]lp.SharedFolder, 5)
 	events := make([]lp.Event, 5)
 	organizationMap := make(map[string][]lp.User)

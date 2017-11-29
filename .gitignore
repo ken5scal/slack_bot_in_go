@@ -3,4 +3,4 @@ setEnv.sh
 .env
 !vendor/vendor.json
 vendor/*
-
+setup.sh
